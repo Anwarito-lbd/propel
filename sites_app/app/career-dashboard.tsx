@@ -182,13 +182,31 @@ export default function CareerDashboard({ user }: { user: { name: string; email:
 
 function JobCard({ job, index, saved, onSaved, onOpen, onInterview }: { job: Job; index: number; saved: boolean; onSaved: () => Promise<void>; onOpen: (kind: "cv" | "cover_letter" | "message", job: Job) => void; onInterview: (job: Job) => void }) {
   const [saving, setSaving] = useState(false);
-  async function save() { if (saved || saving) return; setSaving(true); const response = await fetch("/api/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ job }) }); if (response.ok) await onSaved(); setSaving(false); }
+  const [saveError, setSaveError] = useState("");
+  async function save() {
+    if (saved || saving) return;
+    setSaving(true);
+    setSaveError("");
+    try {
+      const response = await fetch("/api/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ job }) });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({})) as { error?: string };
+        setSaveError(payload.error || "Could not save job.");
+      } else {
+        await onSaved();
+      }
+    } catch {
+      setSaveError("Could not save job.");
+    } finally {
+      setSaving(false);
+    }
+  }
   return <article className="job-card" style={{ animationDelay: `${index * 35}ms` }}>
     {job.score >= 80 && <span className="top-match">Strong evidence match</span>}
     <div className="job-card-top"><div className="company-mark" style={{ background: job.color }}>{job.monogram}</div><div className="job-info"><h2>{job.title}</h2><strong>{job.company}</strong><p>⌖ {job.location} · {job.mode}</p></div><div className="score"><b>{job.score}%</b><span>evidence fit</span></div></div>
     <div className="tags"><span>{job.type}</span>{job.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
     <p className="job-description">{job.description || "The public feed did not include a description. Open the original posting for full details."}</p>
-    <div className="job-meta"><span>{job.posted}</span><a href={job.sourceUrl} target="_blank" rel="noreferrer">{job.source}</a></div>
+    <div className="job-meta"><span>{job.posted}</span><a href={job.sourceUrl} target="_blank" rel="noreferrer">{job.source}</a></div>{saveError && <p className="form-error">{saveError}</p>}
     <div className="job-actions"><a href={job.url} target="_blank" rel="noreferrer">Open original</a><button onClick={() => void save()} disabled={saved || saving}>{saved ? "Saved ✓" : saving ? "Saving…" : "Save"}</button><button onClick={() => onOpen("cv", job)}>Tailor CV</button><button onClick={() => onOpen("cover_letter", job)}>Cover letter</button><button onClick={() => onOpen("message", job)}>Find lead</button><button className="primary" onClick={() => onInterview(job)}>Practice</button></div>
   </article>;
 }
@@ -199,7 +217,7 @@ function StudioDrawer({ kind, job, artifact, meta, generating, error, onGenerate
     <div className="drawer-head"><div><span>{kind === "cv" ? "CAREER-OPS CV MODE" : kind === "cover_letter" ? "FACT-SAFE COVER LETTER" : "VERIFIED OUTREACH"}</span><h2>{kind === "cv" ? "Fact-safe CV" : kind === "cover_letter" ? "Targeted cover letter" : "Real channel, custom note"}</h2></div><button onClick={onClose}>×</button></div>
     <div className="selected-role"><div className="company-mark" style={{ background: job.color }}>{job.monogram}</div><div><strong>{job.title}</strong><p>{job.company} · verified {new Date(job.verifiedAt).toLocaleString()}</p></div></div>
     {kind === "message" && <div className="lead-card"><div className="lead-avatar">✓</div><div><strong>{meta?.lead?.name || `${job.company} recruiting team`}</strong><p>{meta?.lead?.role || "Checking public posting"}</p><span>{meta?.lead?.evidence || `Verified through ${job.source}`}</span>{meta?.lead?.publicUrl && <a href={meta.lead.publicUrl} target={meta.lead.publicUrl.startsWith("mailto:") ? undefined : "_blank"} rel="noreferrer">{meta.lead.publicUrl.startsWith("mailto:") ? "Email this verified lead" : meta.lead.publicUrl.includes("linkedin.com") ? "Open verified LinkedIn" : "Open official channel"}</a>}</div></div>}
-    <div className="integrity-banner"><span>✓</span><p><strong>{kind === "cv" ? "Resume facts only" : "No invented recruiter"}</strong><br />{kind === "cv" ? "Gemini may reorder or rephrase supported facts, but cannot add claims." : "A named person is shown only when a public source verifies them. This job currently verifies the official channel."}</p></div>
+    <div className="integrity-banner"><span>✓</span><p><strong>{kind === "cv" ? "Resume facts only" : "No invented recruiter"}</strong><br />{kind === "cv" ? "Gemini may reorder or rephrase supported facts, but cannot add claims." : meta?.lead?.evidence || "A named person is shown only when a public source verifies them. Otherwise Propel keeps the official channel."}</p></div>
     {!artifact && <button className="primary full-button" onClick={onGenerate} disabled={generating}>{generating ? "Gemini is checking every claim…" : kind === "cv" ? "Generate tailored CV draft" : kind === "cover_letter" ? "Generate targeted cover letter" : "Verify lead and draft ≤300-character message"}</button>}
     {error && <p className="form-error">{error}</p>}
     {artifact && <div className="artifact-result"><span>{kind === "cv" ? "TAILORED CV · REVIEW REQUIRED" : kind === "cover_letter" ? "COVER LETTER · REVIEW REQUIRED" : "CUSTOM MESSAGE · REVIEW BEFORE SENDING"}</span><pre>{artifact}</pre>{meta?.evidence?.length ? <p className="evidence-line"><strong>Supported evidence:</strong> {meta.evidence.join(", ")}</p> : null}{meta?.gaps?.length ? <p className="gap-line"><strong>Unaddressed gaps:</strong> {meta.gaps.join(", ")}</p> : null}<button className="primary full-button" onClick={async () => { await navigator.clipboard.writeText(artifact); setCopied(true); }}>{copied ? "Copied" : "Copy draft"}</button>{kind !== "message" && meta?.artifactId && <div className="export-row"><a className="secondary" href={`/api/documents/export?id=${encodeURIComponent(meta.artifactId)}&format=pdf`}>Download PDF</a><a className="secondary" href={`/api/documents/export?id=${encodeURIComponent(meta.artifactId)}&format=docx`}>Download DOCX</a></div>}</div>}
@@ -261,7 +279,7 @@ function PipelineView({ items, onRefresh }: { items: Array<Record<string, unknow
   }
   async function remove(id: string) {
     const response = await fetch(`/api/workspace?id=${encodeURIComponent(id)}`, { method: "DELETE" });
-    if (response.ok) await onRefresh();
+    if (!response.ok) { const data = await response.json().catch(() => ({})) as { error?: string }; setError(data.error || "Could not remove this application."); return; } setError(""); await onRefresh();
   }
   return <section className="subpage"><div className="subpage-head"><p className="eyebrow">REAL APPLICATION TRACKER</p><h1>Your actual pipeline.</h1><p>Move every application as it progresses. “Applied” is never set automatically.</p></div>{error && <p className="form-error">{error}</p>}<div className="pipeline-board live">{stages.map((stage) => { const jobs = items.filter((item) => item.status === stage); return <section key={stage}><header><strong>{stage}</strong><span>{jobs.length}</span></header>{jobs.map((job) => <article key={String(job.id)}><b>{String(job.company)}</b><h3>{String(job.title)}</h3><div><span>{String(job.score)}% evidence fit</span><a href={String(job.url)} target="_blank" rel="noreferrer">Open ↗</a></div><label className="stage-control">Move to<select value={String(job.status)} onChange={(event) => void move(String(job.id), event.target.value)}>{stages.map((option) => <option key={option}>{option}</option>)}<option>Archived</option></select></label><button className="text-button" onClick={() => void remove(String(job.id))}>Remove from pipeline</button></article>)}{!jobs.length && <p className="column-empty">Nothing here yet.</p>}</section>; })}</div></section>;
 }

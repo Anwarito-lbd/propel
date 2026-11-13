@@ -5,15 +5,22 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Iterable
 
-DB_PATH = Path(os.getenv("PROPEL_DB", Path(__file__).resolve().parent.parent / "propel.db"))
+DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "propel.db"
+
+
+def get_db_path() -> Path:
+    return Path(os.getenv("PROPEL_DB", str(DEFAULT_DB_PATH)))
+
 
 def connect() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def init_db() -> None:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    db_path = get_db_path()
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     with closing(connect()) as conn, conn:
         conn.executescript(
             """
@@ -40,13 +47,17 @@ def init_db() -> None:
             """
         )
 
-def execute(query: str, params: Iterable[Any] = ()) -> None:
+
+def execute(query: str, params: Iterable[Any] = ()) -> int:
     with closing(connect()) as conn, conn:
-        conn.execute(query, tuple(params))
+        cur = conn.execute(query, tuple(params))
+        return cur.rowcount
+
 
 def fetchone(query: str, params: Iterable[Any] = ()) -> sqlite3.Row | None:
     with closing(connect()) as conn, conn:
         return conn.execute(query, tuple(params)).fetchone()
+
 
 def fetchall(query: str, params: Iterable[Any] = ()) -> list[sqlite3.Row]:
     with closing(connect()) as conn, conn:

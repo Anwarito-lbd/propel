@@ -4,10 +4,10 @@
 <section class="hero"><div><h1>Find real roles. Tailor truthfully. Prepare smarter.</h1><p>Propel never inserts fake jobs. Results come from public providers, saved applications, or explicit user uploads.</p></div><div class="badge">Source-verifiable workflow</div></section>
 <section class="grid">
 <div class="card"><h2>1. Account</h2><input id="email" placeholder="email"><input id="password" type="password" placeholder="password"><input id="name" placeholder="name optional"><div class="row"><button onclick="signup()">Sign up</button><button onclick="login()">Login</button></div><p id="authStatus" class="small"></p></div>
-<div class="card"><h2>2. Profile + resume</h2><input id="field" placeholder="field e.g. Software Engineering"><input id="target_location" placeholder="location e.g. Canada"><input id="target_duration" placeholder="duration e.g. 4 months"><input id="resume" type="file" accept=".txt,.pdf,.docx"><button onclick="saveProfile()">Save profile</button><p class="small">Blank fields stay blank. Resume facts are the source of truth.</p></div>
+<div class="card"><h2>2. Profile + resume</h2><input id="field" placeholder="field e.g. Software Engineering"><input id="target_location" placeholder="location e.g. Canada"><input id="target_duration" placeholder="duration e.g. 4 months"><input id="resume" type="file" accept=".txt,.pdf,.docx"><button onclick="saveProfile()">Save profile</button><p id="profileStatus" class="small">Blank fields stay blank. Resume facts are the source of truth.</p></div>
 <div class="card wide"><h2>3. Search real jobs</h2><div class="row"><input id="query" placeholder="Software Engineering Intern"><input id="location" placeholder="Canada"><input id="duration" placeholder="4 months"><button onclick="searchJobs()">Search live</button></div><p id="searchStatus" class="small"></p><div id="jobs"></div></div>
-<div class="card"><h2>4. Applications</h2><button onclick="loadApps()">Refresh pipeline</button><div id="apps"></div></div>
-<div class="card"><h2>5. Generated material</h2><button onclick="generateMaterial()">Generate for selected job</button><pre id="material"></pre></div>
+<div class="card"><h2>4. Applications</h2><button onclick="loadApps()">Refresh pipeline</button><p id="appsStatus" class="small"></p><div id="apps"></div></div>
+<div class="card"><h2>5. Generated material</h2><p id="selectedStatus" class="small">No job selected yet.</p><button onclick="generateMaterial()">Generate for selected job</button><pre id="material"></pre></div>
 <div class="card"><h2>6. Interview practice</h2><button onclick="interview()">Start interview</button><div id="questions"></div></div>
 </section>
 </main><script src="/static/script.js"></script></body></html>
