@@ -14,7 +14,8 @@ All checks below were executed cleanly **after the final code edits** across bot
 | **`sites_app` Test Suite** | `npm run test:local` (`node --test tests/*.test.mjs`) | **10 passed, 0 failed, 0 skipped** (`1139.88ms`) |
 | **`propel_working_code` Pytest** | `.\.venv_test\Scripts\python.exe -m pytest -v` | **7 passed, 0 failed** (`2.70s`; 1 third-party Starlette `anyio.abc.BlockingPortal` warning) |
 | **`propel_working_code` Live API Smoke** | `uvicorn app.main:app --host 127.0.0.1 --port 8010` (temp SQLite DB) | **Exit 0** — HTTP `200` end-to-end across signup, resume upload, live search (`10` live matches), save, status transition, draft generation, interview (`7` questions), and delete |
-| **Visual Proof (`docs/images/`)** | Playwright + Matplotlib + FFmpeg | Desktop (`1440×900`), Mobile (`390×844`), FastAPI UI, architecture diagram, `.mp4` (`1.2 MB`) & `.gif` (`6.3 MB`) walkthroughs |
+| **Live Vercel Frontend** | `https://propelapply.vercel.app/` (HTTP + Playwright `1440×900`) | **HTTP 200** — Title: `Propel — Walk into every interview unstoppable`, H1: `Walk into every interview unstoppable.` |
+| **Visual Proof (`docs/images/`)** | Playwright + Matplotlib + FFmpeg | Live Vercel (`1440×900`), Workspace Desktop (`1440×900`) & Mobile (`390×844`), FastAPI UI, architecture diagram, `.mp4` (`1.2 MB`) & `.gif` (`6.3 MB`) |
 
 ---
 
@@ -159,10 +160,13 @@ Verified fixes in `propel_working_code/`:
 
 ---
 
-## 5. Visual Proof Inventory (`docs/images/`)
+## 5. Live Frontend Inspection & Visual Proof Inventory (`docs/images/`)
+
+- **Production Frontend Check (`https://propelapply.vercel.app/`):** Verified via HTTPS + Playwright (`1440×900`, `networkidle`), returning **HTTP 200**, HTML `33,735` bytes, `<title>` `"Propel — Walk into every interview unstoppable"`, and `<h1>` `"Walk into every interview unstoppable."`.
 
 | Artifact | Purpose & Resolution | File Path |
 | :--- | :--- | :--- |
+| **Live Vercel Frontend** | Production frontend at `https://propelapply.vercel.app/` (`1440×900`) | [docs/images/propel-live-vercel.png](images/propel-live-vercel.png) |
 | **System Architecture** | End-to-end Next.js/Cloudflare + FastAPI data/provider/AI pipeline diagram | [docs/images/propel-architecture.png](images/propel-architecture.png) |
 | **Desktop Live UI** | `sites_app` (`1440×900`) showing 86 live verified job matches | [docs/images/propel-sites-ui.png](images/propel-sites-ui.png) |
 | **Mobile Live UI** | `sites_app` (`390×844`) responsive mobile layout | [docs/images/propel-sites-mobile.png](images/propel-sites-mobile.png) |

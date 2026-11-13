@@ -1,7 +1,8 @@
 # Case Study: Building Propel — A Fact-Safe, Zero-Fake-Data Career Workspace
 
 **Author:** Anwar Issaoui  
-**Role:** Full-Stack & AI Systems Engineer (SEG2105 Software Engineering Project — Evolution of [uLink v1](https://github.com/Anwarito-lbd/Ulink))
+**Role:** Full-Stack & AI Systems Engineer (SEG2105 Software Engineering Project — Evolution of [uLink v1](https://github.com/Anwarito-lbd/Ulink))  
+**Live Frontend:** [https://propelapply.vercel.app/](https://propelapply.vercel.app/)
 
 ---
 
@@ -24,8 +25,8 @@ I structured Propel in two complementary layers:
 1. **A Zero-Key Local-First Prototype (`propel_working_code/`)**  
    Built with **FastAPI**, **SQLite**, `httpx`, `pypdf`, and `python-docx` to validate the core workflow locally without paid APIs. It authenticates users with PBKDF2-SHA256 password hashing, parses TXT/PDF/DOCX resumes, queries Remotive and Arbeitnow live, penalizes senior titles for student/co-op searches, enforces manual pipeline stage updates, and generates deterministic evidence-backed drafts.
 
-2. **A Production-Ready Edge Web App (`sites_app/`)**  
-   Built with **Next.js 16 (App Router)**, **React 19**, **Vinext (Vite 8)**, and **Cloudflare Workers** (`@cloudflare/vite-plugin` + `wrangler`), backed by **Cloudflare D1** (via **Drizzle ORM**) and **Cloudflare R2** for private resume storage.
+2. **A Production-Ready Edge Web App & Live Frontend (`sites_app/` + [propelapply.vercel.app](https://propelapply.vercel.app/))**  
+   Deployed frontend at **[https://propelapply.vercel.app/](https://propelapply.vercel.app/)**, backed by **Next.js 16 (App Router)**, **React 19**, **Vinext (Vite 8)**, and **Cloudflare Workers** (`@cloudflare/vite-plugin` + `wrangler`), with **Cloudflare D1** (via **Drizzle ORM**) and **Cloudflare R2** for private resume storage.
 
 ```mermaid
 flowchart LR

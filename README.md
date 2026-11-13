@@ -1,18 +1,25 @@
 # Propel — From Live Job Lead to Interview-Ready
 
+> **Live Frontend:** [https://propelapply.vercel.app/](https://propelapply.vercel.app/)  
+> [![Live on Vercel](https://img.shields.io/badge/Live_Frontend-propelapply.vercel.app-000000?style=flat&logo=vercel&logoColor=white)](https://propelapply.vercel.app/)
+
 I built **Propel** as an honest, fact-safe career workspace for Canadian students and early-career engineers. Every job listing comes from a live public provider or ATS feed—never synthetic demo cards—and every tailored CV, cover letter, outreach draft, and interview question is grounded strictly in the candidate's uploaded resume.
 
-This repository contains two verified implementations of the Propel workflow:
+This repository contains the live web frontend (**[propelapply.vercel.app](https://propelapply.vercel.app/)**) alongside two verified backend/workspace implementations:
 - **`sites_app/`** — The full-stack production web application built with **Next.js 16**, **React 19**, **Vinext (Vite 8)**, **Drizzle ORM**, and **Cloudflare Workers** (D1 SQLite + R2 object storage), with Gemini document/interview coaching, server-side PDF/DOCX exports, public lead verification, optional ElevenLabs narration, and an optional Crawl4AI Python sidecar.
 - **`propel_working_code/`** — A standalone, zero-key local-first **FastAPI + SQLite** reference package that runs live Remotive and Arbeitnow searches, deterministic keyword scoring, resume parsing (TXT/PDF/DOCX), application pipeline management, and evidence-backed drafts without requiring any external API keys.
 
 ---
 
-## Live Demo & Visual Proof
+## Live Deployment & Visual Proof
 
-### Interactive Walkthrough Preview (`sites_app`)
+### Live Production Frontend ([propelapply.vercel.app](https://propelapply.vercel.app/))
+![Propel Live Frontend on Vercel](docs/images/propel-live-vercel.png)
+
+### Interactive Workspace Walkthrough (`sites_app`)
 ![Propel Live Workspace Walkthrough](docs/images/propel-walkthrough.gif)
 
+- Live Production Frontend: **[https://propelapply.vercel.app/](https://propelapply.vercel.app/)**
 - Full screen-recorded walkthrough video: [docs/images/propel-walkthrough.mp4](docs/images/propel-walkthrough.mp4)
 
 ### Desktop, Mobile & FastAPI Prototype Screenshots
@@ -32,7 +39,9 @@ This repository contains two verified implementations of the Propel workflow:
 
 ```mermaid
 flowchart TB
-    User["Candidate Browser"] -->|"HTTPS / Localhost"| UI["sites_app (Next.js 16 + React 19 + Vinext)"]
+    User["Candidate Browser"] -->|"Live Frontend"| Vercel["Vercel Web App (propelapply.vercel.app)"]
+    User -->|"Workspace / Localhost"| UI["sites_app (Next.js 16 + React 19 + Vinext)"]
+    Vercel --> UI
     UI -->|"Cloudflare Worker (worker/index.ts)"| API["App Router API (/api/*)"]
 
     subgraph Data["Persistence & Storage"]
