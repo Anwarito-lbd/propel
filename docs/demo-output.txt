@@ -23,7 +23,7 @@ Live local server & API smoke flow (uvicorn app.main:app --host 127.0.0.1 --port
   - POST /api/jobs/save -> 200 {'ok': True}
   - POST /api/generate -> 200 evidence={'resume_keywords_used': ['engineering', 'python', 'react'], 'job_source': 'Remotive public API', 'job_url': 'https://remotive.com/remote-jobs/software-development/senior-react-full-stack-developer-2091136'}
   - POST /api/interview -> 200 questions=7 voice_enabled=False
-  - Screenshot captured: docs/images/propel-fastapi-demo.png
+  - Screenshot captured: docs/images/propel-fastapi-ui.png
 
 2. sites_app (Next.js 16 / Vinext / React 19 / Cloudflare Workers / D1 + R2)
 --------------------------------------------------------------------------
@@ -49,4 +49,4 @@ Linter (eslint):
 Local dev server (npm run dev -> http://localhost:5173/):
   - GET http://localhost:5173/ -> HTTP 200
   - GET http://localhost:5173/api/system/status -> {"liveJobs":true,"demoData":false,"geminiConfigured":true,"elevenLabsConfigured":true,"interviewCoach":true,"handsFreeInterview":true,"crawl4aiConfigured":false,"jobSpyConfigured":false,"apifyConfigured":true,"editablePipeline":true,"documentExports":["pdf","docx"],"coverLetters":true,"publicLeadVerification":true,"careerOps":{"version":"1.21.0","commit":"e8ba1a42beec3a638f34a862d238f5e42174dcb1"},"resumeStorage":"R2","profileStorage":"D1"}
-  - Screenshot captured: docs/images/propel-sites-app.png
+  - Screenshot captured: docs/images/propel-sites-ui.png

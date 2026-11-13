@@ -60,7 +60,7 @@ During portfolio packaging on Windows (Node `v24.19.0`, Python `3.12.10`), I aud
 - **All automated checks pass:**
   - `sites_app`: `npm run test:local` built all 10 App Router routes cleanly and passed **8/8** Node tests (`tests/full-flow.test.mjs`, `tests/rendered-html.test.mjs`). `eslint` passed with **0 errors**.
   - `propel_working_code`: `pytest -v` passed **7/7** tests (`tests/test_core.py`, `tests/test_api_smoke.py`).
-- **Live local demos verified:** Both the FastAPI server (`http://127.0.0.1:8010`) and the Vite/Vinext dev server (`http://localhost:5173`) served HTTP 200 locally, with screenshots captured in [docs/images/propel-sites-app.png](images/propel-sites-app.png) and [docs/images/propel-fastapi-demo.png](images/propel-fastapi-demo.png), and raw logs in [docs/demo-output.txt](demo-output.txt).
+- **Live local demos verified:** Both the FastAPI server (`http://127.0.0.1:8010`) and the Vite/Vinext dev server (`http://localhost:5173`) served HTTP 200 locally, with screenshots captured in [docs/images/propel-sites-ui.png](images/propel-sites-ui.png) and [docs/images/propel-fastapi-ui.png](images/propel-fastapi-ui.png), and raw logs in [docs/demo-output.txt](demo-output.txt).
 
 ---
 

@@ -22,10 +22,10 @@ All checks below were executed locally and recorded in [docs/demo-output.txt](do
 ### Screenshots
 
 **Full-Stack Workspace (`sites_app` on `http://localhost:5173`):**
-![Propel Sites App UI](docs/images/propel-sites-app.png)
+![Propel Sites App UI](docs/images/propel-sites-ui.png)
 
 **Local-First FastAPI Prototype (`propel_working_code` on `http://127.0.0.1:8010`):**
-![Propel FastAPI Demo UI](docs/images/propel-fastapi-demo.png)
+![Propel FastAPI Demo UI](docs/images/propel-fastapi-ui.png)
 
 ---
 
