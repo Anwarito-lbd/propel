@@ -1,4 +1,5 @@
 from __future__ import annotations
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 import secrets
@@ -16,13 +17,28 @@ from app.services.jobs import search_real_jobs
 from app.services.generator import generate_application_message, interview_questions
 
 BASE = Path(__file__).resolve().parent
-app = FastAPI(title='Propel', version='1.0.0')
+ALLOWED_STATUSES = {'saved', 'shortlisted', 'applied', 'interview', 'offer', 'rejected', 'archived'}
+
+
+def startup() -> None:
+    init_db()
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    startup()
+    yield
+
+
+app = FastAPI(title='Propel', version='1.0.0', lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=BASE / 'static'), name='static')
+
 
 def hash_password(password: str) -> str:
     salt = secrets.token_hex(16)
     digest = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 120000).hex()
     return f'{salt}${digest}'
+
 
 def verify_password(password: str, stored: str) -> bool:
     try:
@@ -32,17 +48,16 @@ def verify_password(password: str, stored: str) -> bool:
     except Exception:
         return False
 
+
 SESSIONS: dict[str, str] = {}
 JOB_CACHE: dict[str, Job] = {}
 
-@app.on_event('startup')
-def startup() -> None:
-    init_db()
 
 class AuthBody(BaseModel):
     email: str
     password: str
     name: str = ''
+
 
 class SearchBody(BaseModel):
     token: str
@@ -52,15 +67,18 @@ class SearchBody(BaseModel):
     duration: str = ''
     field: str = ''
 
+
 class SaveBody(BaseModel):
     token: str
     job_id: str
     status: str = 'saved'
     note: str = ''
 
+
 class GenerateBody(BaseModel):
     token: str
     job_id: str
+
 
 class StatusBody(BaseModel):
     token: str
@@ -73,6 +91,7 @@ def email_for_token(token: str) -> str:
     if not email:
         raise HTTPException(status_code=401, detail='Please sign in first.')
     return email
+
 
 def get_profile(email: str) -> UserProfile:
     row = fetchone('SELECT * FROM users WHERE email=?', [email])
@@ -87,9 +106,31 @@ def get_profile(email: str) -> UserProfile:
         resume_text=row['resume_text'] or ''
     )
 
+
+def resolve_job_for_user(email: str, job_id: str) -> Job:
+    job = JOB_CACHE.get(job_id)
+    if job:
+        return job
+    row = fetchone('SELECT * FROM applications WHERE email=? AND job_id=?', [email, job_id])
+    if not row:
+        raise HTTPException(status_code=404, detail='Search or save the job first.')
+    return Job(
+        id=row['job_id'],
+        title=row['title'],
+        company=row['company'],
+        url=row['url'],
+        apply_url=row['url'],
+        location='',
+        source='Saved verified application',
+        posted_at='',
+        description='',
+    )
+
+
 @app.get('/', response_class=HTMLResponse)
 def index() -> str:
     return (BASE / 'static' / 'index.html').read_text(encoding='utf-8')
+
 
 @app.post('/api/signup')
 def signup(body: AuthBody):
@@ -106,6 +147,7 @@ def signup(body: AuthBody):
     SESSIONS[token] = email
     return {'token': token, 'email': email, 'name': body.name.strip()}
 
+
 @app.post('/api/login')
 def login(body: AuthBody):
     email = body.email.strip().lower()
@@ -115,6 +157,7 @@ def login(body: AuthBody):
     token = secrets.token_urlsafe(24)
     SESSIONS[token] = email
     return {'token': token, 'email': email, 'name': row['name'] or ''}
+
 
 @app.post('/api/profile')
 async def update_profile(
@@ -139,11 +182,13 @@ async def update_profile(
     profile = get_profile(email)
     return {'ok': True, 'profile': {**profile.__dict__, 'resume_text': profile.resume_text[:250] + ('...' if len(profile.resume_text) > 250 else '')}}
 
+
 @app.get('/api/profile')
 def profile(token: str):
     email = email_for_token(token)
     p = get_profile(email)
     return {**p.__dict__, 'resume_text': p.resume_text[:500]}
+
 
 @app.post('/api/jobs/search')
 async def jobs_search(body: SearchBody):
@@ -157,17 +202,22 @@ async def jobs_search(body: SearchBody):
         JOB_CACHE[j.id] = j
     return {'jobs': [j.to_dict() for j in jobs[:40]], 'provider_errors': errors, 'truth_policy': 'No fake jobs are inserted. If providers fail, errors are shown.'}
 
+
 @app.post('/api/jobs/save')
 def save_job(body: SaveBody):
     email = email_for_token(body.token)
+    status = body.status.strip().lower()
+    if status not in ALLOWED_STATUSES:
+        raise HTTPException(status_code=400, detail='Invalid application status.')
     job = JOB_CACHE.get(body.job_id)
     if not job:
         raise HTTPException(status_code=404, detail='Job not found in current live search cache. Search again, then save.')
     execute(
         'INSERT OR IGNORE INTO applications(email,job_id,title,company,url,status,note) VALUES(?,?,?,?,?,?,?)',
-        [email, job.id, job.title, job.company, job.url, body.status, body.note]
+        [email, job.id, job.title, job.company, job.url, status, body.note]
     )
     return {'ok': True}
+
 
 @app.get('/api/applications')
 def applications(token: str):
@@ -175,31 +225,42 @@ def applications(token: str):
     rows = fetchall('SELECT * FROM applications WHERE email=? ORDER BY id DESC', [email])
     return {'applications': [dict(r) for r in rows]}
 
+
 @app.post('/api/applications/status')
 def update_status(body: StatusBody):
     email = email_for_token(body.token)
-    execute('UPDATE applications SET status=? WHERE id=? AND email=?', [body.status, body.application_id, email])
+    status = body.status.strip().lower()
+    if status not in ALLOWED_STATUSES:
+        raise HTTPException(status_code=400, detail='Invalid application status. Candidate must choose a manual stage.')
+    updated = execute('UPDATE applications SET status=? WHERE id=? AND email=?', [status, body.application_id, email])
+    if updated == 0:
+        raise HTTPException(status_code=404, detail='Application not found.')
     return {'ok': True}
+
+
+@app.delete('/api/applications/{application_id}')
+def delete_application(application_id: int, token: str):
+    email = email_for_token(token)
+    deleted = execute('DELETE FROM applications WHERE id=? AND email=?', [application_id, email])
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail='Application not found.')
+    return {'ok': True}
+
 
 @app.post('/api/generate')
 def generate(body: GenerateBody):
     email = email_for_token(body.token)
-    job = JOB_CACHE.get(body.job_id)
-    if not job:
-        row = fetchone('SELECT * FROM applications WHERE email=? AND job_id=?', [email, body.job_id])
-        if not row:
-            raise HTTPException(status_code=404, detail='Search or save the job first.')
-        job = Job(id=row['job_id'], title=row['title'], company=row['company'], url=row['url'], apply_url=row['url'], location='', source='Saved verified application', posted_at='', description='')
+    job = resolve_job_for_user(email, body.job_id)
     profile = get_profile(email)
     return generate_application_message(profile, job)
+
 
 @app.post('/api/interview')
 def interview(body: GenerateBody):
     email = email_for_token(body.token)
-    job = JOB_CACHE.get(body.job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail='Search the job first so interview questions can use its description.')
+    job = resolve_job_for_user(email, body.job_id)
     return {'questions': interview_questions(get_profile(email), job), 'voice_enabled': False, 'note': 'Voice is disabled unless an ElevenLabs API key is configured. This demo does not fake voice output.'}
+
 
 @app.exception_handler(Exception)
 def handle_error(request: Request, exc: Exception):

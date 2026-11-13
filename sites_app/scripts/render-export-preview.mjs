@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { createPdf } from "../app/api/documents/export/route.ts";
+import { createPdf } from "../lib/documents.ts";
 
 const content = `# Anwar Issaoui
 (514) 945-8595 | aissa.050@uottawa.ca | linkedin.com/in/anwarissaoui | github.com/Anwarito-lbd

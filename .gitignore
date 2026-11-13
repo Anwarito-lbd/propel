@@ -8,24 +8,38 @@
 
 # Python
 .venv/
+.venv_test/
 .venv*/
+**/.venv/
+**/.venv_test/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+propel.db
 *.db
 *.sqlite
 *.sqlite3
 
 # Node / Next / Vinext / Cloudflare
 node_modules/
+**/node_modules/
 node_modules_stale/
 .next/
+**/.next/
 .vinext/
+**/.vinext/
 .wrangler/
+**/.wrangler/
 .sites-runtime/
+**/.sites-runtime/
 dist/
+**/dist/
 out/
+**/out/
 outputs/
+**/outputs/
+outputs/*.tar.gz
+*.tar.gz
 coverage/
 tsconfig.tsbuildinfo
 next-env.d.ts
