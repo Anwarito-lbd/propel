@@ -1,0 +1,52 @@
+﻿Propel Verification & Demo Output Log
+=====================================
+Verified locally on Windows (Node v24.19.0, Python 3.12.10)
+
+1. propel_working_code (Python / FastAPI / SQLite)
+--------------------------------------------------
+Command: python -m pytest -v
+Result: 7 passed, 3 warnings in 6.22s
+  - tests/test_api_smoke.py::test_signup_profile_pipeline_works PASSED
+  - tests/test_core.py::test_txt_resume_extraction PASSED
+  - tests/test_core.py::test_keywords_are_deterministic PASSED
+  - tests/test_core.py::test_senior_roles_are_penalized PASSED
+  - tests/test_core.py::test_filter_jobs_returns_ranked_results PASSED
+  - tests/test_core.py::test_generated_message_contains_source_evidence PASSED
+  - tests/test_core.py::test_interview_questions_are_job_specific PASSED
+
+Live local server & API smoke flow (uvicorn app.main:app --host 127.0.0.1 --port 8010):
+  - GET http://127.0.0.1:8010/ -> HTTP 200 OK
+  - POST /api/signup -> 200 ['token', 'email', 'name']
+  - POST /api/profile (TXT resume upload) -> 200 True
+  - POST /api/jobs/search (query='software', live Remotive/Arbeitnow) -> 200 jobs_count=3 provider_errors=[]
+  - Top live match: Senior React Full-stack Developer | Lemon.io | Remotive public API | score=15.0
+  - POST /api/jobs/save -> 200 {'ok': True}
+  - POST /api/generate -> 200 evidence={'resume_keywords_used': ['engineering', 'python', 'react'], 'job_source': 'Remotive public API', 'job_url': 'https://remotive.com/remote-jobs/software-development/senior-react-full-stack-developer-2091136'}
+  - POST /api/interview -> 200 questions=7 voice_enabled=False
+  - Screenshot captured: docs/images/propel-fastapi-demo.png
+
+2. sites_app (Next.js 16 / Vinext / React 19 / Cloudflare Workers / D1 + R2)
+--------------------------------------------------------------------------
+Command: npm run test:local (vinext build + node --test tests/*.test.mjs)
+Build result:
+  - vinext build (Vite 8.0.13)
+  - 313 client modules, 50 server modules, 365 RSC modules, 58 client env modules, 56 SSR env modules
+  - Routes built: /, /api/careerops/generate, /api/documents/export, /api/interview, /api/interview/speak, /api/jobs/search, /api/profile, /api/resume, /api/system/status, /api/workspace
+Test result: 8 passed, 0 failed in 1727.1237ms
+  - private API rejects anonymous access (25.1111ms)
+  - profile links automatically receive a secure scheme (1.1326ms)
+  - lead outreach has a safe response when AI JSON is incomplete (0.7268ms)
+  - capability status reports the complete production workflow (7.9447ms)
+  - invalid pipeline transitions are rejected (18.5213ms)
+  - student filters reject senior roles and accept explicit co-op roles (1.8033ms)
+  - document engines generate valid PDF and DOCX bytes (98.7491ms)
+  - renders finished product metadata (718.1124ms)
+
+Linter (eslint):
+  - Command: eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .vinext --ignore-pattern .wrangler --ignore-pattern build
+  - Result: exited with code 0 (0 errors, 0 warnings)
+
+Local dev server (npm run dev -> http://localhost:5173/):
+  - GET http://localhost:5173/ -> HTTP 200
+  - GET http://localhost:5173/api/system/status -> {"liveJobs":true,"demoData":false,"geminiConfigured":true,"elevenLabsConfigured":true,"interviewCoach":true,"handsFreeInterview":true,"crawl4aiConfigured":false,"jobSpyConfigured":false,"apifyConfigured":true,"editablePipeline":true,"documentExports":["pdf","docx"],"coverLetters":true,"publicLeadVerification":true,"careerOps":{"version":"1.21.0","commit":"e8ba1a42beec3a638f34a862d238f5e42174dcb1"},"resumeStorage":"R2","profileStorage":"D1"}
+  - Screenshot captured: docs/images/propel-sites-app.png

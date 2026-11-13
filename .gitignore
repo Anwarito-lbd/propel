@@ -1,0 +1,35 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Python
+.venv/
+.venv*/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.db
+*.sqlite
+*.sqlite3
+
+# Node / Next / Vinext / Cloudflare
+node_modules/
+node_modules_stale/
+.next/
+.vinext/
+.wrangler/
+.sites-runtime/
+dist/
+out/
+outputs/
+coverage/
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# OS / Editor
+.DS_Store
+Thumbs.db

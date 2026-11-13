@@ -1,0 +1,13 @@
+Propel code audit result
+
+Local automated tests:
+- Command: pytest -q
+- Result: 7 passed
+
+Local server smoke test:
+- Command: python -m uvicorn app.main:app --port 8010
+- Check: GET http://127.0.0.1:8010/
+- Result: HTTP 200
+
+Important limitation:
+- External live job APIs require internet access at presentation time. The app is designed to show provider errors instead of inserting fake fallback jobs.
